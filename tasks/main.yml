@@ -1,0 +1,68 @@
+---
+- name: Ensure curl is installed
+  ansible.builtin.apt:
+    name: curl
+    state: present
+    update_cache: true
+
+- name: Check if CloudPanel is already installed (via clpctl)
+  ansible.builtin.stat:
+    path: /usr/bin/clpctl
+  register: cloudpanel_installed
+
+- name: Download CloudPanel install script
+  ansible.builtin.get_url:
+    url: https://installer.cloudpanel.io/ce/v2/install.sh
+    dest: /tmp/cloudpanel-install.sh
+    mode: '0755'
+  when: not cloudpanel_installed.stat.exists
+
+- name: Verify SHA256 checksum of install script
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo "a3ba69a8102345127b4ae0e28cfe89daca675cbc63cd39225133cdd2fa02ad36 /tmp/cloudpanel-install.sh" | sha256sum -c -
+  args:
+    executable: /bin/bash
+  changed_when: false
+  when: not cloudpanel_installed.stat.exists
+
+- name: Run CloudPanel installer with environment variables
+  ansible.builtin.shell: |
+    set -o pipefail
+    CLOUD=hetzner DB_ENGINE=MARIADB_11.4 bash /tmp/cloudpanel-install.sh
+  args:
+    executable: /bin/bash
+    creates: /etc/cloudpanel
+  when: not cloudpanel_installed.stat.exists
+
+- name: Wait for CloudPanel to start
+  ansible.builtin.wait_for:
+    port: 80
+    timeout: 300
+
+- name: Check if CloudPanel admin user exists
+  ansible.builtin.shell: |
+    set -o pipefail
+    clpctl user:list | grep -w "{{ cloudpanel_admin_user }}"
+  args:
+    executable: /bin/bash
+  register: clp_user_check
+  failed_when: false
+  changed_when: false
+
+- name: Create CloudPanel admin user if not exists
+  ansible.builtin.shell: |
+    set -o pipefail
+    clpctl user:add \
+      --userName='{{ cloudpanel_admin_user }}' \
+      --email='{{ cloudpanel_admin_email }}' \
+      --firstName='{{ cloudpanel_admin_first_name }}' \
+      --lastName='{{ cloudpanel_admin_last_name }}' \
+      --password='{{ cloudpanel_admin_pass }}' \
+      --role='admin' \
+      --timezone='cloudpanel_admin_last_name ' \
+      --status='1'
+  args:
+    executable: /bin/bash
+  when: clp_user_check.rc != 0
+  changed_when: true

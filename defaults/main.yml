@@ -1,0 +1,6 @@
+cloudpanel_admin_email: "admin@example.com"
+cloudpanel_admin_user: "admin"
+cloudpanel_admin_last_name: "user"
+cloudpanel_admin_first_name: "Admin"
+cloudpanel_admin_pass: "SuperSecurePassword123"
+cloudpanel_admin_tz: "Europe/Berlin"
