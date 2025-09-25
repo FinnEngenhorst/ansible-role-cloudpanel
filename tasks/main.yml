@@ -20,7 +20,7 @@
 - name: Verify SHA256 checksum of install script
   ansible.builtin.shell: |
     set -o pipefail
-    echo "a3ba69a8102345127b4ae0e28cfe89daca675cbc63cd39225133cdd2fa02ad36 /tmp/cloudpanel-install.sh" | sha256sum -c -
+    echo "19cfa702e7936a79e47812ff57d9859175ea902c62a68b2c15ccd1ebaf36caeb /tmp/cloudpanel-install.sh" | sha256sum -c -
   args:
     executable: /bin/bash
   changed_when: false
@@ -60,7 +60,7 @@
       --lastName='{{ cloudpanel_admin_last_name }}' \
       --password='{{ cloudpanel_admin_pass }}' \
       --role='admin' \
-      --timezone='cloudpanel_admin_last_name ' \
+      --timezone='{{ cloudpanel_admin_tz }}' \
       --status='1'
   args:
     executable: /bin/bash
