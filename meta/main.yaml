@@ -1,0 +1,12 @@
+galaxy_info:
+  author: Finn Engenhorst
+  description: This Ansible role automates the install of Cloudpanel
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+
+dependencies: []
